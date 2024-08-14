@@ -1,0 +1,437 @@
+Create DATABASE Stock_json
+use Stock_json;
+ 
+ 
+create or replace table Stock_table (filename STRING, data variant);
+ 
+create or replace stage azureblobstage url= 'azure://datasp1.blob.core.windows.net/stockmarket' credentials= ( azure_sas_token= 'sp=racwdl&st=2024-07-12T11:08:01Z&se=2024-07-12T19:08:01Z&sv=2022-11-02&sr=c&sig=W8MeDv37GL7Ws7KK7PXnNn0mo4V5RrzjrBnekl8PEzQ%3D');
+ 
+create or replace file format jsonformat type= 'JSON';
+ 
+copy into Stock_table(filename, data) from (SELECT METADATA$FILENAME, $1 FROM @azureblobstage (file_format => 'jsonformat')) pattern= '.*\.json';
+ 
+select * from Stock_table where filename='A2ZMES6.BO.json';
+
+
+CREATE OR REPLACE TABLE AssetProfile AS 
+SELECT filename,
+data:assetProfile:address1 as address1,
+data:assetProfile:address2 as address2,
+data:assetProfile:city::string city,
+data:assetProfile:companyOfficers companyOfficers,
+data:assetProfile:compensationAsOfEpochDate compensationAsOfEpochDate,
+data:assetProfile:country::string country,
+data:assetProfile:fax::string fax,
+data:assetProfile:industry::string industry,
+data:assetProfile:longBusinessSummary::string longBusinessSummary,
+data:assetProfile:maxAge maxAge,
+data:assetProfile:phone::string phone,
+data:assetProfile:sector::string sector,
+data:assetProfile:website::string website,
+data:assetProfile:zip::string zip,
+FROM Stock_table;
+
+select * from assetprofile where city is not null;
+
+CREATE OR REPLACE TABLE companyOfficers AS 
+select filename,
+companyOfficersDetails.value:age as CompanyOfficer_age,
+companyOfficersDetails.value:fiscalYear as CompanyOfficer_fiscalyear,
+companyOfficersDetails.value:maxAge as CompanyOfficer_maxAge,
+companyOfficersDetails.value:name as CompanyOfficer_name,
+companyOfficersDetails.value:title as CompanyOfficer_title,
+companyOfficersDetails.value:totalPay as CompanyOfficer_totalPay,
+companyOfficersDetails.value:yearBorn as CompanyOfficer_yearBorn,
+from assetProfile,
+lateral flatten(input=>companyOfficers) companyOfficersDetails;
+
+select * from assetProfile where city is not null;
+
+
+CREATE OR REPLACE TABLE balanceSheetHistory AS
+select
+abc.value:accountsPayable as accountsPayable,
+abc.value:cash as cash,
+abc.value:commonStock as commonStock,
+abc.value:deferredLongTermAssetCharges as deferredLongTermAssetCharges,
+abc.value:endDate as endDate,
+abc.value:goodWill as goodWill,
+abc.value:intangibleAssets as intangibleAssets,
+abc.value:inventory as inventory,
+abc.value:longTermDebt as longTermDebt,
+abc.value:longTermInvestments as longTermInvestments,
+abc.value:maxAge as maxAge,
+abc.value:minorityInterest as minorityInterest,
+abc.value:netReceivables as netReceivables,
+abc.value:netTangibleAssets as netTangibleAssets,
+abc.value:otherAssets as otherAssets,
+abc.value:otherCurrentAssets as otherCurrentAssets,
+abc.value:otherCurrentLiab as otherCurrentLiab,
+abc.value:otherLiab as otherLiab,
+abc.value:otherStockholderEquity as otherStockholderEquity,
+abc.value:propertyPlantEquipment as propertyPlantEquipment,
+abc.value:shortTermInvestments as shortTermInvestments,
+abc.value:totalAssets as totalAssets,
+abc.value:totalCurrentAssets as totalCurrentAssets,
+abc.value:totalCurrentLiabilities as totalCurrentLiabilities,
+abc.value:totalLiab as totalLiab,
+abc.value:totalStockholderEquity as totalStockholderEquity,
+abc.value:treasuryStock as treasuryStock,
+from stock_table,
+lateral flatten(input=> data:balanceSheetHistory:balanceSheetStatements) abc;
+
+select * from balanceSheetHistory;
+
+
+CREATE OR REPLACE TABLE balanceSheetHistoryQuarterly AS
+select
+Quarterly.value:accountsPayable as balanceSheetHistoryQuarterly_accountsPayable,
+Quarterly.value:cash as balanceSheetHistoryQuarterly_cash,
+Quarterly.value:commonStock as balanceSheetHistoryQuarterly_commonStock,
+Quarterly.value:deferredLongTermAssetCharges as balanceSheetHistoryQuarterly_deferredLongTermAssetCharges,
+Quarterly.value:endDate as balanceSheetHistoryQuarterly_endDate,
+Quarterly.value:goodWill as balanceSheetHistoryQuarterly_goodWill,
+Quarterly.value:intangibleAssets as balanceSheetHistoryQuarterly_intangibleAssets,
+Quarterly.value:inventory as balanceSheetHistoryQuarterly_inventory,
+Quarterly.value:longTermDebt as balanceSheetHistoryQuarterly_longTermDebt,
+Quarterly.value:longTermInvestments as balanceSheetHistoryQuarterly_longTermInvestments,
+Quarterly.value:maxAge as balanceSheetHistoryQuarterly_maxAge,
+Quarterly.value:minorityInterest as balanceSheetHistoryQuarterly_minorityInterest,
+Quarterly.value:netReceivables as balanceSheetHistoryQuarterly_netReceivables,
+Quarterly.value:netTangibleAssets as balanceSheetHistoryQuarterly_netTangibleAssets,
+Quarterly.value:otherAssets as balanceSheetHistoryQuarterly_otherAssets,
+Quarterly.value:otherCurrentAssets as balanceSheetHistoryQuarterly_otherCurrentAssets,
+Quarterly.value:otherCurrentLiab as balanceSheetHistoryQuarterly_otherCurrentLiab,
+Quarterly.value:otherLiab as balanceSheetHistoryQuarterly_otherLiab,
+Quarterly.value:otherStockholderEquity as balanceSheetHistoryQuarterly_otherStockholderEquity,
+Quarterly.value:propertyPlantEquipment as balanceSheetHistoryQuarterly_propertyPlantEquipment,
+Quarterly.value:shortTermInvestments as balanceSheetHistoryQuarterly_shortTermInvestments,
+Quarterly.value:totalAssets as balanceSheetHistoryQuarterly_totalAssets,
+Quarterly.value:totalCurrentAssets as balanceSheetHistoryQuarterly_totalCurrentAssets,
+Quarterly.value:totalCurrentLiabilities as balanceSheetHistoryQuarterly_totalCurrentLiabilities,
+Quarterly.value:totalLiab as balanceSheetHistoryQuarterly_totalLiab,
+Quarterly.value:totalStockholderEquity as balanceSheetHistoryQuarterly_totalStockholderEquity,
+Quarterly.value:treasuryStock as balanceSheetHistoryQuarterly_treasuryStock,
+from stock_table,
+lateral flatten(input=> data:balanceSheetHistoryQuarterly:balanceSheetStatements) Quarterly;
+
+select * from balanceSheetHistoryQuarterly;
+
+
+CREATE OR REPLACE TABLE cashflowStatementHistory AS
+select
+cashflow.value:capitalExpenditures as capitalExpenditures,
+cashflow.value:changeInCash as changeInCash,
+cashflow.value:changeToAccountReceivables as changeToAccountReceivables,
+cashflow.value:changeToInventory as changeToInventory,
+cashflow.value:changeToLiabilities as changeToLiabilities,
+cashflow.value:changeToNetincome as changeToNetincome,
+cashflow.value:changeToOperatingActivities as changeToOperatingActivities,
+cashflow.value:depreciation as depreciation,
+cashflow.value:endDate as endDate,
+cashflow.value:investments as investments,
+cashflow.value:maxAge as maxAge,
+cashflow.value:netBorrowings as netBorrowings,
+cashflow.value:netIncome as netIncome,
+cashflow.value:otherCashflowsFromFinancingActivities as otherCashflowsFromFinancingActivities,
+cashflow.value:otherCashflowsFromInvestingActivities as otherCashflowsFromInvestingActivities,
+cashflow.value:totalCashFromFinancingActivities as totalCashFromFinancingActivities,
+cashflow.value:totalCashFromOperatingActivities as totalCashFromOperatingActivities,
+cashflow.value:totalCashflowsFromInvestingActivities as totalCashflowsFromInvestingActivities,
+from stock_table,
+lateral flatten(input=> data:cashflowStatementHistory:cashflowStatements) cashflow;
+
+select * from cashflowStatementHistory;
+
+
+CREATE OR REPLACE TABLE cashflowStatementHistoryQuarterly AS
+select
+CStatementQuarterly.value:endDate as endDate,
+CStatementQuarterly.value:maxAge as maxAge,
+CStatementQuarterly.value:netIncome as netIncome,
+from stock_table,
+lateral flatten(input=> data:cashflowStatementHistoryQuarterly:cashflowStatements) CStatementQuarterly;
+
+select * from cashflowStatementHistoryQuarterly;
+
+
+CREATE OR REPLACE TABLE defaultKeyStatistics AS
+SELECT
+    -- data:defaultKeyStatistics:52WeekChange::string as WeekChange_52,
+    data:defaultKeyStatistics:beta::string as beta,
+    data:defaultKeyStatistics:bookValue::string as bookValue,
+    data:defaultKeyStatistics:enterpriseToEbitda::string as enterpriseToEbitda,
+    data:defaultKeyStatistics:enterpriseToRevenue::string as enterpriseToRevenue,
+    data:defaultKeyStatistics:enterpriseValue::string as enterpriseValue,
+    data:defaultKeyStatistics:floatShares::string as floatShares,
+    data:defaultKeyStatistics:heldPercentInsiders::string as heldPercentInsiders,
+    data:defaultKeyStatistics:heldPercentInstitutions::string as heldPercentInstitutions,
+    data:defaultKeyStatistics:lastFiscalYearEnd::string as lastFiscalYearEnd,
+    data:defaultKeyStatistics:maxAge::number as maxAge,
+    data:defaultKeyStatistics:mostRecentQuarter::string as mostRecentQuarter,
+    data:defaultKeyStatistics:netIncomeToCommon::string as netIncomeToCommon,
+    data:defaultKeyStatistics:nextFiscalYearEnd::string as nextFiscalYearEnd,
+    data:defaultKeyStatistics:priceHint::string as priceHint,
+    data:defaultKeyStatistics:priceToBook::string as priceToBook,
+    data:defaultKeyStatistics:profitMargins::string as profitMargins,
+    data:defaultKeyStatistics:sharesOutstanding::string as sharesOutstanding,
+    data:defaultKeyStatistics:trailingEps::string as trailingEps
+FROM Stock_table;
+
+select * from defaultKeyStatistics;
+
+
+CREATE OR REPLACE TABLE financialData AS
+SELECT
+    -- data:defaultKeyStatistics:52WeekChange::string as WeekChange_52,
+    data:financialData:currentPrice::string as currentPrice,
+    data:financialData:currentRatio::string as currentRatio,
+    data:financialData:debtToEquity::string as debtToEquity,
+    data:financialData:ebitda::string as ebitda,
+    data:financialData:ebitdaMargins::string as ebitdaMargins,
+    data:financialData:financialCurrency::string as financialCurrency,
+    data:financialData:freeCashflow::string as freeCashflow,
+    data:financialData:grossMargins::string as grossMargins,
+    data:financialData:grossProfits::string as grossProfits,
+    data:financialData:maxAge::number as maxAge,
+    data:financialData:operatingCashflow::string as operatingCashflow,
+    data:financialData:operatingMargins::string as operatingMargins,
+    data:financialData:profitMargins::string as profitMargins,
+    data:financialData:quickRatio::string as quickRatio,
+    data:financialData:returnOnAssets::string as returnOnAssets,
+    data:financialData:returnOnEquity::string as returnOnEquity,
+    data:financialData:revenueGrowth::string as revenueGrowth,
+    data:financialData:revenuePerShare::string as revenuePerShare,
+    data:financialData:totalCash::string as totalCash,
+    data:financialData:totalCashPerShare::string as totalCashPerShare,
+    data:financialData:totalDebt::string as totalDebt,
+    data:financialData:totalRevenue::string as totalRevenue,
+FROM Stock_table;
+
+select * from financialData;
+
+
+CREATE OR REPLACE TABLE incomeStatementHistory AS
+select
+incomeStatement.value:costOfRevenue as costOfRevenue,
+incomeStatement.value:ebit as ebit,
+incomeStatement.value:endDate as endDate,
+incomeStatement.value:grossProfit as grossProfit,
+incomeStatement.value:incomeBeforeTax as incomeBeforeTax,
+incomeStatement.value:incomeTaxExpense as incomeTaxExpense,
+incomeStatement.value:interestExpense as interestExpense,
+incomeStatement.value:maxAge as incomeStatementHistory_maxAge,
+incomeStatement.value:minorityInterest as incomeStatementHistory_minorityInterest,
+incomeStatement.value:longTermInvestments as longTermInvestments,
+incomeStatement.value:maxAge as maxAge,
+incomeStatement.value:minorityInterest as minorityInterest,
+incomeStatement.value:netIncome as netIncome,
+incomeStatement.value:netIncomeApplicableToCommonShares as netIncomeApplicableToCommonShares,
+incomeStatement.value:netIncomeFromContinuingOps as netIncomeFromContinuingOps,
+incomeStatement.value:operatingIncome as operatingIncome,
+incomeStatement.value:otherOperatingExpenses as otherOperatingExpenses,
+incomeStatement.value:totalOperatingExpenses as totalOperatingExpenses,
+incomeStatement.value:totalOtherIncomeExpenseNet as totalOtherIncomeExpenseNet,
+incomeStatement.value:totalRevenue as totalRevenue,
+from stock_table,
+lateral flatten(input=> data:incomeStatementHistory:incomeStatementHistory) incomeStatement;
+
+select * from incomeStatementHistory;
+
+
+
+CREATE OR REPLACE TABLE incomeStatementHistoryQuarterly AS
+select
+incomeStatementQ.value:costOfRevenue as costOfRevenue_incomeStatementHistoryQuarterly,
+incomeStatementQ.value:ebit as ebit_incomeStatementHistoryQuarterly,
+incomeStatementQ.value:endDate as endDate_incomeStatementHistoryQuarterly,
+incomeStatementQ.value:grossProfit as grossProfit_incomeStatementHistoryQuarterly,
+incomeStatementQ.value:incomeBeforeTax as incomeBeforeTax_incomeStatementHistoryQuarterly,
+incomeStatementQ.value:incomeTaxExpense as incomeTaxExpense_incomeStatementHistoryQuarterly,
+incomeStatementQ.value:interestExpense as interestExpense_incomeStatementHistoryQuarterly,
+incomeStatementQ.value:maxAge as _incomeStatementHistoryQuarterly_maxAge,
+incomeStatementQ.value:minorityInterest as incomeStatementHistoryQuarterly_minorityInterest,
+incomeStatementQ.value:longTermInvestments as longTermInvestments_incomeStatementHistoryQuarterly,
+incomeStatementQ.value:maxAge as maxAge_incomeStatementHistoryQuarterly,
+incomeStatementQ.value:minorityInterest as minorityInterest_incomeStatementHistoryQuarterly,
+incomeStatementQ.value:netIncome as netIncome_incomeStatementHistoryQuarterly,
+incomeStatementQ.value:netIncomeApplicableToCommonShares as netIncomeApplicableToCommonShares_incomeStatementHistoryQuarterly,
+incomeStatementQ.value:netIncomeFromContinuingOps as netIncomeFromContinuingOps_incomeStatementHistoryQuarterly,
+incomeStatementQ.value:operatingIncome as operatingIncome_incomeStatementHistoryQuarterly,
+incomeStatementQ.value:otherOperatingExpenses as otherOperatingExpenses_incomeStatementHistoryQuarterly,
+incomeStatementQ.value:totalOperatingExpenses as totalOperatingExpenses_incomeStatementHistoryQuarterly,
+incomeStatementQ.value:totalOtherIncomeExpenseNet as totalOtherIncomeExpenseNet_incomeStatementHistoryQuarterly,
+incomeStatementQ.value:totalRevenue as totalRevenue_incomeStatementHistoryQuarterly,
+from stock_table,
+lateral flatten(input=> data:incomeStatementHistoryQuarterly:incomeStatementHistory) incomeStatementQ;
+
+select * from incomeStatementHistoryQuarterly;
+
+
+CREATE OR REPLACE TABLE insiderHolders AS
+SELECT
+    holder.value:latestTransDate::string as latestTransDate,
+    holder.value:maxAge::number as maxAge,
+    holder.value:name::string as name,
+    holder.value:positionDirect::string as positionDirect,
+    holder.value:positionDirectDate::string as positionDirectDate,
+    holder.value:relation::string as relation,
+    holder.value:transactionDescription::string as transactionDescription
+FROM Stock_table,
+LATERAL FLATTEN(input => data:insiderHolders.holders) as holder;
+
+select * from insiderHolders;
+
+CREATE OR REPLACE TABLE insiderTransactions AS
+SELECT
+    transaction.value:filerName::string as filerName,
+    transaction.value:filerRelation::string as filerRelation,
+    transaction.value:maxAge::number as maxAge,
+    transaction.value:ownership::string as ownership,
+    transaction.value:shares::string as shares,
+    transaction.value:startDate::string as startDate
+FROM Stock_table,
+LATERAL FLATTEN(input => data:insiderTransactions.transactions) as transaction;
+
+select * from insiderTransactions;
+
+
+CREATE OR REPLACE TABLE majorHoldersBreakdown AS
+SELECT
+    data:majorHoldersBreakdown.insidersPercentHeld::string AS insidersPercentHeld,
+    data:majorHoldersBreakdown.institutionsFloatPercentHeld::string AS institutionsFloatPercentHeld,
+    data:majorHoldersBreakdown.institutionsPercentHeld::string AS institutionsPercentHeld,
+    data:majorHoldersBreakdown.maxAge::number AS maxAge
+FROM Stock_table;
+
+select * from majorHoldersBreakdown;
+
+CREATE OR REPLACE TABLE priceDetails AS
+SELECT
+    data:price.averageDailyVolume10Day::string AS averageDailyVolume10Day,
+    data:price.averageDailyVolume3Month::string AS averageDailyVolume3Month,
+    data:price.currency::string AS currency,
+    data:price.currencySymbol::string AS currencySymbol,
+    data:price.exchange::string AS exchange,
+    data:price.exchangeDataDelayedBy::number AS exchangeDataDelayedBy,
+    data:price.exchangeName::string AS exchangeName,
+    data:price.longName::string AS longName,
+    data:price.marketCap::string AS marketCap,
+    data:price.marketState::string AS marketState,
+    data:price.maxAge::number AS maxAge,
+    data:price.priceHint::string AS priceHint,
+    data:price.quoteSourceName::string AS quoteSourceName,
+    data:price.quoteType::string AS quoteType,
+    data:price.regularMarketChange::string AS regularMarketChange,
+    data:price.regularMarketChangePercent::string AS regularMarketChangePercent,
+    data:price.regularMarketDayHigh::string AS regularMarketDayHigh,
+    data:price.regularMarketDayLow::string AS regularMarketDayLow,
+    data:price.regularMarketOpen::string AS regularMarketOpen,
+    data:price.regularMarketPreviousClose::string AS regularMarketPreviousClose,
+    data:price.regularMarketPrice::string AS regularMarketPrice,
+    data:price.regularMarketSource::string AS regularMarketSource,
+    data:price.regularMarketTime::number AS regularMarketTime,
+    data:price.regularMarketVolume::string AS regularMarketVolume,
+    data:price.shortName::string AS shortName,
+    data:price.symbol::string AS symbol
+FROM Stock_table;
+
+select * from priceDetails;
+
+CREATE OR REPLACE TABLE summaryDetail (
+    ask STRING,
+    averageDailyVolume10Day STRING,
+    averageVolume STRING,
+    averageVolume10days STRING,
+    beta STRING,
+    bid STRING,
+    currency STRING,
+    dayHigh STRING,
+    dayLow STRING,
+    fiftyDayAverage STRING,
+    fiftyTwoWeekHigh STRING,
+    fiftyTwoWeekLow STRING,
+    marketCap STRING,
+    maxAge NUMBER,
+    open STRING,
+    payoutRatio STRING,
+    previousClose STRING,
+    priceHint STRING,
+    priceToSalesTrailing12Months STRING,
+    regularMarketDayHigh STRING,
+    regularMarketDayLow STRING,
+    regularMarketOpen STRING,
+    regularMarketPreviousClose STRING,
+    regularMarketVolume STRING,
+    tradeable BOOLEAN,
+    trailingPE STRING,
+    twoHundredDayAverage STRING,
+    volume STRING
+);
+
+INSERT INTO summaryDetail
+SELECT
+    data:summaryDetail.ask::string AS ask,
+    data:summaryDetail.averageDailyVolume10Day::string AS averageDailyVolume10Day,
+    data:summaryDetail.averageVolume::string AS averageVolume,
+    data:summaryDetail.averageVolume10days::string AS averageVolume10days,
+    data:summaryDetail.beta::string AS beta,
+    data:summaryDetail.bid::string AS bid,
+    data:summaryDetail.currency::string AS currency,
+    data:summaryDetail.dayHigh::string AS dayHigh,
+    data:summaryDetail.dayLow::string AS dayLow,
+    data:summaryDetail.fiftyDayAverage::string AS fiftyDayAverage,
+    data:summaryDetail.fiftyTwoWeekHigh::string AS fiftyTwoWeekHigh,
+    data:summaryDetail.fiftyTwoWeekLow::string AS fiftyTwoWeekLow,
+    data:summaryDetail.marketCap::string AS marketCap,
+    data:summaryDetail.maxAge::number AS maxAge,
+    data:summaryDetail.open::string AS open,
+    data:summaryDetail.payoutRatio::string AS payoutRatio,
+    data:summaryDetail.previousClose::string AS previousClose,
+    data:summaryDetail.priceHint::string AS priceHint,
+    data:summaryDetail.priceToSalesTrailing12Months::string AS priceToSalesTrailing12Months,
+    data:summaryDetail.regularMarketDayHigh::string AS regularMarketDayHigh,
+    data:summaryDetail.regularMarketDayLow::string AS regularMarketDayLow,
+    data:summaryDetail.regularMarketOpen::string AS regularMarketOpen,
+    data:summaryDetail.regularMarketPreviousClose::string AS regularMarketPreviousClose,
+    data:summaryDetail.regularMarketVolume::string AS regularMarketVolume,
+    data:summaryDetail.tradeable::boolean AS tradeable,
+    data:summaryDetail.trailingPE::string AS trailingPE,
+    data:summaryDetail.twoHundredDayAverage::string AS twoHundredDayAverage,
+    data:summaryDetail.volume::string AS volume
+FROM Stock_table;
+
+select * from summaryDetail;
+
+CREATE OR REPLACE TABLE summaryProfile (
+    address1 STRING,
+    address2 STRING,
+    city STRING,
+    country STRING,
+    fax STRING,
+    industry STRING,
+    longBusinessSummary STRING,
+    maxAge NUMBER,
+    phone STRING,
+    sector STRING,
+    website STRING,
+    zip STRING
+);
+
+INSERT INTO summaryProfile
+SELECT
+    data:summaryProfile.address1::string AS address1,
+    data:summaryProfile.address2::string AS address2,
+    data:summaryProfile.city::string AS city,
+    data:summaryProfile.country::string AS country,
+    data:summaryProfile.fax::string AS fax,
+    data:summaryProfile.industry::string AS industry,
+    data:summaryProfile.longBusinessSummary::string AS longBusinessSummary,
+    data:summaryProfile.maxAge::number AS maxAge,
+    data:summaryProfile.phone::string AS phone,
+    data:summaryProfile.sector::string AS sector,
+    data:summaryProfile.website::string AS website,
+    data:summaryProfile.zip::string AS zip
+FROM Stock_table;
+
+select * from summaryProfile;
