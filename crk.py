@@ -4,9 +4,9 @@ import pandas as pd
 
 # Initialize Snowflake session
 connection_parameters = {
-    "account": "lh81346.central-india.azure",
-    "user": "SUBHRADYUTI",
-    "password": "Subhra@3010",
+    "account": "lh****india.azure",
+    "user": "abc",
+    "password": "abc@10",
     "warehouse": "COMPUTE_WH",
     "database": "JSON_DB",
     "schema": "PUBLIC"
@@ -89,120 +89,4 @@ else:
     toss_info = f'Toss: {toss_winner}, elected to {toss_decision} first'
     st.write(f':blue[{toss_info}]')
 
-    # # Adjust and display innings information
-    # if toss_decision == 'bat' and team2 == toss_winner:
-    #     team1, team2 = team2, team1
-    # elif toss_decision != 'bat' and team1 == toss_winner:
-    #     team1, team2 = team2, team1
-
-    # # Retrieve and display Team1 batting scorecard
-    # sql = f"""
-    # SELECT BATTER, 
-    #        CASE WHEN STATUS IS NULL THEN 'Not Out' ELSE STATUS END AS STATUS, 
-    #        RUNS::string RUNS, 
-    #        BOWL, 
-    #        "4s", 
-    #        "6s", 
-    #        SR 
-    # FROM json_db.public.Innings 
-    # WHERE id={match_id} AND TEAM='{team1}' 
-    # ORDER BY BATTER_ORDER
-    # """
-    # team1_batting_data = get_data(sql)
-    # st.dataframe(team1_batting_data, hide_index=True)
-
-#     # Retrieve and display Team1 extras and bowling scorecard
-#     sql = f"SELECT EXTRAS FROM VW_T20_EXTRAS WHERE id={match_id} AND TEAM='{team1}'"
-#     extras_data = get_data(sql)
-#     extras = extras_data['EXTRAS'].to_list()[0]
-#     col1, _, col2 = st.columns(3)
-#     with col1:
-#         st.write('Extras')
-#     with col2:
-#         st.write(extras)
-
-#     sql = f"""
-#     SELECT BOWLER, 
-#            OVERS, 
-#            RUNS::string RUNS, 
-#            NVL(WD,0)::string WD, 
-#            NVL(NB,0)::string NB, 
-#            W 
-#     FROM VW_T20_DELIVERIES_BOWLING_SCORE 
-#     WHERE id={match_id} AND TEAM='{team1}'
-#     """
-#     team1_bowling_data = get_data(sql)
-#     st.dataframe(team1_bowling_data, hide_index=True)
-
-#     # Retrieve and display Team1 additional details (Did Not Bat, Fall of Wickets)
-#     sql = f"SELECT PLAYER_LIST FROM VW_PLAYET_YET_BAT WHERE id={match_id} AND TEAM='{team1}'"
-#     did_not_bat_data = get_data(sql)
-#     if did_not_bat_data['PLAYER_LIST'].to_list():
-#         st.write('Did not Bat yet')
-#         st.write(did_not_bat_data['PLAYER_LIST'].to_list()[0])
-
-#     sql = f"SELECT RESULT FROM VW_T20_FALL_WICKETS WHERE id={match_id} AND TEAM='{team1}'"
-#     fall_of_wickets_data = get_data(sql)
-#     if fall_of_wickets_data['RESULT'].to_list():
-#         st.write('Fall of Wickets')
-#         st.write(fall_of_wickets_data['RESULT'].to_list()[0])
-
-#     # Repeat for Team2
-#     sql = f"SELECT SC_WICKET, OVER_STATUS FROM VW_SCORE_WICKET WHERE id={match_id} AND TEAM='{team2}'"
-#     team2_score_data = get_data(sql)
-#     team2_score = team2_score_data['SC_WICKET'].to_list()[0] + '(' + team2_score_data['OVER_STATUS'].to_list()[0] + ')'
-
-#     col1, _, col2 = st.columns(3)
-#     with col1:
-#         st.write(f'{team2} Innings')
-#     with col2:
-#         st.write(team2_score)
-
-#     sql = f"""
-#     SELECT BATTER, 
-#            CASE WHEN STATUS IS NULL THEN 'Not Out' ELSE STATUS END AS STATUS, 
-#            RUNS::string RUNS, 
-#            BOWL, 
-#            "4s", 
-#            "6s", 
-#            SR 
-#     FROM json_db.public.Innings
-#     WHERE id={match_id} AND TEAM='{team2}' 
-#     ORDER BY BATTER_ORDER
-#     """
-#     team2_batting_data = get_data(sql)
-#     st.dataframe(team2_batting_data, hide_index=True)
-
-#     sql = f"SELECT EXTRAS FROM VW_T20_EXTRAS WHERE id={match_id} AND TEAM='{team2}'"
-#     team2_extras_data = get_data(sql)
-#     team2_extras = team2_extras_data['EXTRAS'].to_list()[0]
-#     col1, _, col2 = st.columns(3)
-#     with col1:
-#         st.write('Extras')
-#     with col2:
-#         st.write(team2_extras)
-
-#     sql = f"""
-#     SELECT BOWLER, 
-#            OVERS, 
-#            RUNS::string RUNS, 
-#            NVL(WD,0)::string WD, 
-#            NVL(NB,0)::string NB, 
-#            W 
-#     FROM VW_T20_DELIVERIES_BOWLING_SCORE 
-#     WHERE id={match_id} AND TEAM='{team2}'
-#     """
-#     team2_bowling_data = get_data(sql)
-#     st.dataframe(team2_bowling_data, hide_index=True)
-
-#     sql = f"SELECT PLAYER_LIST FROM VW_PLAYET_YET_BAT WHERE id={match_id} AND TEAM='{team2}'"
-#     team2_did_not_bat_data = get_data(sql)
-#     if team2_did_not_bat_data['PLAYER_LIST'].to_list():
-#         st.write('Did not Bat yet')
-#         st.write(team2_did_not_bat_data['PLAYER_LIST'].to_list()[0])
-
-#     sql = f"SELECT RESULT FROM VW_T20_FALL_WICKETS WHERE id={match_id} AND TEAM='{team2}'"
-#     team2_fall_of_wickets_data = get_data(sql)
-#     if team2_fall_of_wickets_data['RESULT'].to_list():
-#         st.write('Fall of Wickets')
-#         st.write(team2_fall_of_wickets_data['RESULT'].to_list()[0])
+    
